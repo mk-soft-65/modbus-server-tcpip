@@ -150,3 +150,10 @@ Procedure.q bswap64_double(value.d) ; Return a double as swap quad
 EndProcedure
 
 ; ----
+
+CompilerIf #PB_Compiler_IsMainFile
+  
+  f.f = 100
+  l = bswap32_float(f)
+  
+CompilerEndIf

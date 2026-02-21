@@ -51,59 +51,30 @@ EndStructure
 
 Global DataThread.udtDataThread
 
-; Modbus Daten für UnitID 1 anlgen
-UnitID\Data[1] = AllocateStructure(udtModbusData)
-; Mutex für Konsistens anlegen
-UnitID\Data[1]\Mutex = CreateMutex()
-
 ; ----
 
 Procedure thDataSource(*Data.udtDataThread)
-  Protected *DiscreateInputs.udtDataDiscreteInputs, *Coils.udtDataCoils
   Protected *HoldingData.udtHoldingDataSource, *InputData.udtInputDataSource
-  Protected Mutex
   Protected fltVal.f, dblVal.d
-  Protected Count, fltCount.f, index
+  Protected Count, fltCount.f
   
   With *Data
     Logging("Start Data Server Thread")
     
-    ; Setze Coils Struktur auf Modbus auf Offset 0 (1x00001)
-    *Coils = UnitID\Data[1]\Coils
-    
-    ; Setze DiscreteInputs Struktur auf Modbus auf Offset 0 (2x10001)
-    *DiscreateInputs = UnitID\Data[1]\DiscreteInputs
-    
     ; Setze Input Daten Struktur auf Modbus Input Register auf Offset 0 (4x30001)
-    *InputData = UnitID\Data[1]\InputRegister
+    *InputData = @DataInputRegister
     
     ; Setze Holding Daten Struktur auf Modbus Holding Register auf Offset 0 (3x40001)
-    *HoldingData = UnitID\Data[1]\HoldingRegister
-    
-    ; Mutex für Konsistens übernehmen
-    Mutex = UnitID\Data[1]\Mutex
-    
-    ; Setze UnitID Online
-    UnitID\Data[1]\Quality = #True
+    *HoldingData = @DataHoldingRegister
     
     Repeat
       If \Exit
         Break
       EndIf
-      
-      ; DiscreteInputs vorbereiten
-      
-      ; DiscreteInpust zuweisen
-      LockMutex(Mutex)
-      For index = 0 To 99
-        *DiscreateInputs\Byte[index] = Random(255)
-      Next
-      UnlockMutex(Mutex)
-      
       ; Analog Input Daten vorbereiten
       
       ; Daten in Holding Registers ablegen in High/Low Byte Notation
-      LockMutex(Mutex)
+      LockMutex(MutexInputRegisters)
       *InputData\Analog_1 = bswap16(1)
       *InputData\Analog_2 = bswap16(2)
       *InputData\Analog_3 = bswap16(3)
@@ -112,14 +83,14 @@ Procedure thDataSource(*Data.udtDataThread)
       *InputData\Analog_6 = bswap16(6)
       *InputData\Analog_7 = bswap16(7)
       *InputData\Analog_8 = bswap16(8)
-      UnlockMutex(Mutex)
+      UnlockMutex(MutexInputRegisters)
       
       ; Holding Daten vorbereiten
       count + 1
       fltCount + 0.01
       
       ; Daten in Holding Registers ablegen in High/Low Byte Notation
-      LockMutex(Mutex)
+      LockMutex(MutexHoldingRegisters)
       *HoldingData\Count = bswap16(Count)
       *HoldingData\ShortValue1 = bswap16(1)
       *HoldingData\ShortValue2 = bswap16(Random(1000))
@@ -134,7 +105,7 @@ Procedure thDataSource(*Data.udtDataThread)
       *HoldingData\DoubleValue1 = bswap64_double(dblVal)
       dblVal = -1.0
       *HoldingData\DoubleValue2 = bswap64_double(dblVal)
-      UnlockMutex(Mutex)
+      UnlockMutex(MutexHoldingRegisters)
       
       ; Kleine Pause
       Delay(1000)

@@ -1,11 +1,11 @@
 ﻿;-TOP
 
 ; Comment : Simple Modbus Server
-; Author  : (c) Michael Kastner (mk-soft), mk-soft-65(a)t-online.de
-; Version : v1.02.1
+; Author  : (c) Michael Kastner (mk-soft), m_kastner(a)t-online.de
+; Version : v1.01.3
 ; License : LGPL - GNU Lesser General Public License
 ; Create  : 13.02.2026
-; Update  : 20.02.2026
+; Update  : 17.02.2026
 
 EnableExplicit
 
@@ -14,7 +14,7 @@ CompilerIf Not #PB_Compiler_Thread
 CompilerEndIf
 
 #ProgramTitle = "Simple Modbus TCP/IP Server"
-#ProgramVersion = "v1.02.1 by mk-soft"
+#ProgramVersion = "v1.01.4 by mk-soft"
 
 #AutoStart = #True
 

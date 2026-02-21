@@ -1,11 +1,11 @@
 ﻿;-TOP
 
 ; Comment : Modbus Server Declaration  
-; Author  : (c) Michael Kastner (mk-soft), mk-soft-65(a)t-online.de
-; Version : v1.02.1
+; Author  : (c) Michael Kastner (mk-soft), m_kastner(a)t-online.de
+; Version : v1.01.5
 ; License : LGPL - GNU Lesser General Public License
 ; Create  : 13.02.2026
-; Update  : 20.02.2026
+; Update  : 19.02.2026
 
 ; ----
 
@@ -40,7 +40,6 @@ Structure udtReceiveData23
   CountWrite.u
   ByteCount.a
   StructureUnion
-    DataByte.b[252]
     DataWord.w[126]
   EndStructureUnion
 EndStructure
@@ -110,34 +109,6 @@ EndStructure
 
 ; ----
 
-; Modbus Data Buffer with High-Low Byte notation
-
-; Coils               Binäre Ausgänge	Lesen/Schreiben	00001 – 09999
-; Discrete Inputs     Binäre Eingänge	Nur Lesen	10001 – 19999
-; Holding Registers   Parameter/Werte	Lesen/Schreiben	40001 – 49999
-; Input Registers     Analoge Eingänge	Nur Lesen	30001 – 39999
-
-Structure udtModbusData
-  Mutex.i
-  Quality.l
-  Coils.udtDataCoils
-  DiscreteInputs.udtDataDiscreteInputs
-  HoldingRegister.udtDataHoldingRegister
-  InputRegister.udtDataInputsRegister
-EndStructure
-
-; ----
-
-; Array Of UnidID with Pointer to Modbus Data
-
-Structure udtUnitID
-  *Data.udtModbusData[255]
-EndStructure
-
-Global UnitID.udtUnitID
-
-; ----
-
 Structure udtServerData
   ThreadId.i
   Exit.i
@@ -165,4 +136,18 @@ EndStructure
 Global ServerData.udtServerData
 Global NewMap Client.udtClientData()
 
-; ----
+Global MutexCoils = CreateMutex()
+Global MutexDiscreteInputs = CreateMutex()
+Global MutexHoldingRegisters = CreateMutex()
+Global MutexInputRegisters = CreateMutex()
+
+; Coils               Binäre Ausgänge	Lesen/Schreiben	00001 – 09999
+; Discrete Inputs     Binäre Eingänge	Nur Lesen	10001 – 19999
+; Input Registers     Analoge Eingänge	Nur Lesen	30001 – 39999
+; Holding Registers   Parameter/Werte	Lesen/Schreiben	40001 – 49999
+
+; Data Buffer with High-Low Byte notation
+Global DataCoils.udtDataCoils
+Global DataDiscreteInputs.udtDataDiscreteInputs
+Global DataInputRegister.udtDataInputsRegister
+Global DataHoldingRegister.udtDataHoldingRegister

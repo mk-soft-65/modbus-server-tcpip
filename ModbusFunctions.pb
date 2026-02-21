@@ -1,11 +1,11 @@
 ﻿;-TOP
 
 ; Comment : Modbus Server Functions 
-; Author  : (c) Michael Kastner (mk-soft), mk-soft-65(a)t-online.de
-; Version : v1.02.1
+; Author  : (c) Michael Kastner (mk-soft), m_kastner(a)t-online.de
+; Version : v1.01.5
 ; License : LGPL - GNU Lesser General Public License
 ; Create  : 13.02.2026
-; Update  : 20.02.2026
+; Update  : 19.02.2026
 
 Structure ArrayOfByte
   a.a[0]
@@ -72,25 +72,16 @@ EndProcedure
 
 ; ----
 
-Procedure ModbusFunction(*ClientData.udtClientData, *Data.udtModbusData)
+Procedure ModbusFunction(*Data.udtClientData)
   Protected Register, cBytes, Offset, lBound, uBound, SendLen
   
-  With *ClientData
-    
-    If *Data = 0
-      ProcedureReturn ModbusError(10, *ClientData)
-    EndIf
-    
-    If *Data\Quality = 0
-      ProcedureReturn ModbusError(11, *ClientData)
-    EndIf
-    
+  With *Data
     Select \Receive\Functioncode
       Case 1 ;-- Read Coils
         If \Receive\Count > 2000
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         ElseIf \Receive\Register + \Receive\Count > #CountCoils
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         Else
           cBytes = \Receive\Count / 8
           If \Receive\Count % 8
@@ -109,22 +100,22 @@ Procedure ModbusFunction(*ClientData.udtClientData, *Data.udtModbusData)
           For Register = 0 To cBytes
             \Send\DataByte[Register] = 0
           Next
-          LockMutex(*Data\Mutex)
+          LockMutex(MutexCoils)
           For Register = lBound To uBound
-            SetBit(@\Send\DataByte, offset, GetBit(@*Data\Coils\Byte, Register))
+            SetBit(@\Send\DataByte, offset, GetBit(@DataCoils\Byte, Register))
             Offset + 1
           Next
-          UnlockMutex(*Data\Mutex)
+          UnlockMutex(MutexCoils)
           SendLen = 6 + 3 + cBytes
-          Logging("Request Client IP " + \IP + " - UnitID " + Str(\Receive\UnitID) + " - Read Coils Offset: " + Str(\Receive\Register) + " Count: " + Str(\Receive\Count), 2)
+          Logging("Request Client IP " + \IP + " / Read Coils Offset: " + Str(\Receive\Register) + " Count: " + Str(\Receive\Count), 2)
           ProcedureReturn SendLen
         EndIf
         
       Case 2 ;-- Read Discrete Inputs
         If \Receive\Count > 2000
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         ElseIf \Receive\Register + \Receive\Count > #CountDiscreteInputs
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         Else
           cBytes = \Receive\Count / 8
           If \Receive\Count % 8
@@ -143,22 +134,22 @@ Procedure ModbusFunction(*ClientData.udtClientData, *Data.udtModbusData)
           For Register = 0 To cBytes
             \Send\DataByte[Register] = 0
           Next
-          LockMutex(*Data\Mutex)
+          LockMutex(MutexDiscreteInputs)
           For Register = lBound To uBound
-            SetBit(@\Send\DataByte, offset, GetBit(@*Data\DiscreteInputs\Byte, Register))
+            SetBit(@\Send\DataByte, offset, GetBit(@DataDiscreteInputs\Byte, Register))
             Offset + 1
           Next
-          UnlockMutex(*Data\Mutex)
+          UnlockMutex(MutexDiscreteInputs)
           SendLen = 6 + 3 + cBytes
-          Logging("Request Client IP " + \IP + " - UnitID " + Str(\Receive\UnitID) + " - Read Discrete Inputs Offset: " + Str(\Receive\Register) + " Count: " + Str(\Receive\Count), 2) 
+          Logging("Request Client IP " + \IP + " / Read Discrete Inputs Offset: " + Str(\Receive\Register) + " Count: " + Str(\Receive\Count), 2) 
           ProcedureReturn SendLen
         EndIf
         
       Case 3 ;-- Read Holding Register
         If \Receive\Count > 125
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         ElseIf \Receive\Register + \Receive\Count > #CountHoldingRegisters
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         Else
           cBytes = \Receive\Count * 2
           lBound = \Receive\Register
@@ -171,22 +162,22 @@ Procedure ModbusFunction(*ClientData.udtClientData, *Data.udtModbusData)
           \Send\Functioncode = \Receive\Functioncode
           \Send\ByteCount = cBytes
           ; Copy Send Data
-          LockMutex(*Data\Mutex)
+          LockMutex(MutexHoldingRegisters)
           For Register = lBound To uBound
-            \Send\DataWord[Offset] = *Data\HoldingRegister\Word[Register]
+            \Send\DataWord[Offset] = DataHoldingRegister\Word[Register]
             Offset + 1
           Next
-          UnlockMutex(*Data\Mutex)
+          UnlockMutex(MutexHoldingRegisters)
           SendLen = 6 + 3 + cBytes
-          Logging("Request Client IP " + \IP + " - UnitID " + Str(\Receive\UnitID) + " - Read Holding Offset: " + Str(\Receive\Register) + " Count: " + Str(\Receive\Count), 2)
+          Logging("Request Client IP " + \IP + " / Read Holding Offset: " + Str(\Receive\Register) + " Count: " + Str(\Receive\Count), 2)
           ProcedureReturn SendLen
         EndIf
         
       Case 4 ;-- Read Input Register
         If \Receive\Count > 125
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         ElseIf \Receive\Register + \Receive\Count > #CountInputRegisters
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         Else
           cBytes = \Receive\Count * 2
           lBound = \Receive\Register
@@ -199,28 +190,28 @@ Procedure ModbusFunction(*ClientData.udtClientData, *Data.udtModbusData)
           \Send\Functioncode = \Receive\Functioncode
           \Send\ByteCount = cBytes
           ; Copy Send Data
-          LockMutex(*Data\Mutex)
+          LockMutex(MutexInputRegisters)
           For Register = lBound To uBound
-            \Send\DataWord[Offset] = *Data\InputRegister\Word[Register]
+            \Send\DataWord[Offset] = DataInputRegister\Word[Register]
             Offset + 1
           Next
-          UnlockMutex(*Data\Mutex)
+          UnlockMutex(MutexInputRegisters)
           SendLen = 6 + 3 + cBytes
-          Logging("Request Client IP " + \IP + " - UnitID " + Str(\Receive\UnitID) + " - Read Inputs Offset: " + Str(\Receive\Register) + " Count: " + Str(\Receive\Count), 2)
+          Logging("Request Client IP " + \IP + " / Read Inputs Offset: " + Str(\Receive\Register) + " Count: " + Str(\Receive\Count), 2)
           ProcedureReturn SendLen
         EndIf
         
       Case 5 ;-- Force Single Coil 
         If \Receive\Register >= #CountCoils
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         Else
-          LockMutex(*Data\Mutex)
+          LockMutex(MutexCoils)
           If \Receive\Status = $FF00
-            SetBit(@*Data\Coils\Byte, \Receive\Register, #True)
+            SetBit(@DataCoils\Byte, \Receive\Register, #True)
           Else
-            SetBit(@*Data\Coils\Byte, \Receive\Register, #False)
+            SetBit(@DataCoils\Byte, \Receive\Register, #False)
           EndIf
-          UnlockMutex(*Data\Mutex)
+          UnlockMutex(MutexCoils)
           ; Set Response
           \SendEx\TransactionID = bswap16(\Receive\TransactionID)
           \SendEx\ProtocolID = 0
@@ -230,17 +221,17 @@ Procedure ModbusFunction(*ClientData.udtClientData, *Data.udtModbusData)
           \SendEx\Register = bswap16(\Receive\Register)
           \SendEx\Status = bswap16(\Receive\Status)
           SendLen = 6 + 6
-          Logging("Request Client IP " + \IP + " - UnitID " + Str(\Receive\UnitID) + " - Write Single Coil Offset: " + Str(\Receive\Register) + " State: " + Hex(\Receive\Count), 2)
+          Logging("Request Client IP " + \IP + " / Write Single Coil Offset: " + Str(\Receive\Register) + " State: " + Hex(\Receive\Count), 2)
           ProcedureReturn SendLen
         EndIf
         
       Case 6 ;-- Write Single Holding Register 
         If \Receive\Register >= #CountHoldingRegisters
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         Else
-          LockMutex(*Data\Mutex)
-          *Data\HoldingRegister\Word[\Receive\Register] = \Receive\Value
-          UnlockMutex(*Data\Mutex)
+          LockMutex(MutexHoldingRegisters)
+          DataHoldingRegister\Word[\Receive\Register] = \Receive\Value
+          UnlockMutex(MutexHoldingRegisters)
           ; Set Response
           \SendEx\TransactionID = bswap16(\Receive\TransactionID)
           \SendEx\ProtocolID = 0
@@ -248,26 +239,26 @@ Procedure ModbusFunction(*ClientData.udtClientData, *Data.udtModbusData)
           \SendEx\UnitID = \Receive\UnitID
           \SendEx\Functioncode = \Receive\Functioncode
           \SendEx\Register = bswap16(\Receive\Register)
-          \SendEx\Value = *Data\HoldingRegister\Word[\Receive\Register]
+          \SendEx\Value = DataHoldingRegister\Word[\Receive\Register]
           SendLen = 6 + 6
-          Logging("Request Client IP " + \IP + " - UnitID " + Str(\Receive\UnitID) + " - Write Single Holding Offset: " + Str(\Receive\Register) + " Value: " + Hex(\Receive\Count), 2)
+          Logging("Request Client IP " + \IP + " / Write Single Holding Offset: " + Str(\Receive\Register) + " Value: " + Hex(\Receive\Count), 2)
           ProcedureReturn SendLen
         EndIf
         
       Case 15 ;-- Force Multiple Coils
         If \Receive\Count > 800
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         ElseIf \Receive\Register + \Receive\Count > #CountCoils
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         Else
           lBound = \Receive\Register
           uBound = \Receive\Register + \Receive\Count - 1
-          LockMutex(*Data\Mutex)
+          LockMutex(MutexCoils)
           For Register = lBound To uBound
-            SetBit(@*Data\Coils\Byte, Register, GetBit(@\Receive\DataByte, Offset))
+            SetBit(@DataCoils\Byte, Register, GetBit(@\Receive\DataByte, Offset))
             Offset + 1
           Next
-          UnlockMutex(*Data\Mutex)
+          UnlockMutex(MutexCoils)
           ; Set Response
           \SendEx\TransactionID = bswap16(\Receive\TransactionID)
           \SendEx\ProtocolID = 0
@@ -277,24 +268,24 @@ Procedure ModbusFunction(*ClientData.udtClientData, *Data.udtModbusData)
           \SendEx\Register = bswap16(\Receive\Register)
           \SendEx\Count = bswap16(\Receive\Count)
           SendLen = 6 + 6
-          Logging("Request Client IP " + \IP + " - UnitID " + Str(\Receive\UnitID) + " - Write Multiple Coils Offset: " + Str(\Receive\Register) + " State: " + Hex(\Receive\Count), 2)
+          Logging("Request Client IP " + \IP + " / Write Multiple Coils Offset: " + Str(\Receive\Register) + " State: " + Hex(\Receive\Count), 2)
           ProcedureReturn SendLen
         EndIf
         
       Case 16 ;-- Write Multiple Holding Registers
         If \Receive\Count > 123
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         ElseIf \Receive\Register + \Receive\Count > #CountHoldingRegisters
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         Else
           lBound = \Receive\Register
           uBound = lBound + \Receive\Count - 1
-          LockMutex(*Data\Mutex)
+          LockMutex(MutexHoldingRegisters)
           For Register = lBound To uBound
-            *Data\HoldingRegister\Word[Register] = \Receive\DataWord[Offset]
+            DataHoldingRegister\Word[Register] = \Receive\DataWord[Offset]
             Offset + 1
           Next
-          UnlockMutex(*Data\Mutex)
+          UnlockMutex(MutexHoldingRegisters)
           ; Set Response
           \SendEx\TransactionID = bswap16(\Receive\TransactionID)
           \SendEx\ProtocolID = 0
@@ -304,27 +295,27 @@ Procedure ModbusFunction(*ClientData.udtClientData, *Data.udtModbusData)
           \SendEx\Register = bswap16(\Receive\Register)
           \SendEx\Count = bswap16(\Receive\Count)
           SendLen = 6 + 6
-          Logging("Request Client IP " + \IP + " - UnitID " + Str(\Receive\UnitID) + " - Write Multiple Holding Offset: " + Str(\Receive\Register) + " Count: " + Hex(\Receive\Count), 2)
+          Logging("Request Client IP " + \IP + " / Write Multiple Holding Offset: " + Str(\Receive\Register) + " Count: " + Hex(\Receive\Count), 2)
           ProcedureReturn SendLen
         EndIf
         
       Case 23 ;-- Read and Write Multiple Holding Registers
         If \Receive23\CountWrite > 121
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         ElseIf \Receive23\RegisterWrite + \Receive23\CountWrite > #CountHoldingRegisters
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         ElseIf \Receive23\CountRead > 125
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         ElseIf \Receive23\RegisterRead + \Receive23\CountRead > #CountHoldingRegisters
-          ProcedureReturn ModbusError(2, *ClientData)
+          ProcedureReturn ModbusError(2, *Data)
         Else
-          LockMutex(*Data\Mutex)
+          LockMutex(MutexHoldingRegisters)
           ; Write Holding Registers
           lBound = \Receive23\RegisterWrite
           uBound = lBound + \Receive23\CountWrite - 1
           Offset = 0
           For Register = lBound To uBound
-            *Data\HoldingRegister\Word[Register] = \Receive23\DataWord[Offset]
+            DataHoldingRegister\Word[Register] = \Receive23\DataWord[Offset]
             Offset + 1
           Next
           ; Read Holding Registers
@@ -333,11 +324,11 @@ Procedure ModbusFunction(*ClientData.udtClientData, *Data.udtModbusData)
           uBound = \Receive23\RegisterRead + \Receive23\CountRead - 1
           Offset = 0
           For Register = lBound To uBound
-            \Send\DataWord[Offset] = *Data\HoldingRegister\Word[Register]
+            \Send\DataWord[Offset] = DataHoldingRegister\Word[Register]
             Offset + 1
           Next
-          UnlockMutex(*Data\Mutex)
-          ; Set Response
+          UnlockMutex(MutexHoldingRegisters)
+          ; Set Resonse
           \Send\TransactionID = bswap16(\Receive23\TransactionID)
           \Send\ProtocolID = 0
           \Send\DataLen = bswap16(3 + cBytes)
@@ -345,13 +336,13 @@ Procedure ModbusFunction(*ClientData.udtClientData, *Data.udtModbusData)
           \Send\Functioncode = \Receive23\Functioncode
           \Send\ByteCount = cBytes
           SendLen = 6 + 3 + cBytes
-          Logging("Request Client IP " + \IP + " - UnitID " + Str(\Receive23\UnitID) + " - Read and Write Holding Offset: " + Str(\Receive23\RegisterRead) + " Count: " + Str(\Receive23\CountRead), 2)
+          Logging("Request Client IP " + \IP + " / Read and Write Holding Offset: " + Str(\Receive23\RegisterRead) + " Count: " + Str(\Receive23\CountRead), 2)
           ProcedureReturn SendLen
         EndIf
         
       Default
         ; Not Supported Function
-        ProcedureReturn ModbusError(1, *ClientData)
+        ProcedureReturn ModbusError(1, *Data)
         
     EndSelect
     
@@ -470,7 +461,7 @@ Procedure thModbusServer(*Data.udtServerData)
               *ReceiveBuffer\Register = bswap16(*ReceiveBuffer\Register)
               *ReceiveBuffer\Count = bswap16(*ReceiveBuffer\Count)
               CopyMemory(*ReceiveBuffer, Client()\Receive, SizeOf(udtReceiveData))
-              Len = ModbusFunction(@Client(), UnitID\Data[*ReceiveBuffer\UnitID])
+              Len = ModbusFunction(@Client())
               SendLen = SendNetworkData(Client()\ConnectionID, @Client()\Send, Len)
               If SendLen <> Len
                 Logging("Error Send to Client IP " + Client()\IP)
@@ -478,7 +469,7 @@ Procedure thModbusServer(*Data.udtServerData)
                 DeleteMapElement(Client())
                 Break
               EndIf
-              ; Next ADU Block Data
+              ; Next Block data
               BlockLen = *ReceiveBuffer\DataLen + 6
               ReceiveLen - BlockLen
               *ReceiveBuffer + BlockLen
@@ -511,7 +502,7 @@ Procedure thModbusServer(*Data.udtServerData)
     ForEver
     
     ForEach Client()
-      CloseNetworkConnection(Client()\ConnectionID)
+      CloseNetworkConnection(client()\ConnectionID)
     Next
     CloseNetworkServer(\ServerID)
     
