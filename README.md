@@ -1,4 +1,4 @@
-# modbus-server-tcpip for purebasic
+# modbus server tcpip for purebasic
 
 English:
 
