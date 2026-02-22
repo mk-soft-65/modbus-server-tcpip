@@ -2,7 +2,7 @@
 
 ; Comment : Global Functions  
 ; Author  : (c) Michael Kastner (mk-soft), mk-soft-65(a)t-online.de
-; Version : v1.02.2
+; Version : v1.02.3
 ; Create  : 13.02.2026
 ; Update  : 21.02.2026
 
@@ -116,7 +116,7 @@ Procedure.q bswap64(value.q)
   CompilerEndIf
 EndProcedure
 
-; ----
+;-----
 
 ; Special swap functions for Modbus
 
@@ -159,28 +159,28 @@ Structure ArrayOfWord
   EndStructureUnion
 EndStructure
 
-Procedure bswap16_string(*pRegister.ArrayOfWord, cRegister, String.s)
-  Protected *String.ArrayOfWord, register, offset, count, len, lBound, uBound
+Procedure bswap16_string(*HoldingRegister.ArrayOfWord, Register, Count, String.s)
+  Protected *String.ArrayOfWord, index, offset, cnt, len, lBound, uBound
   
   *String = Ascii(String)
   len = Len(String)
-  count = len / 2
+  cnt = len / 2
   If len % 2
-    count + 1
+    cnt + 1
   EndIf
-  If count > cRegister
-    count = cRegister
+  If cnt > Count
+    cnt = Count
   EndIf
-  lBound = 0
-  uBound = count - 1
-  For register = lBound To uBound
-    *pRegister\Word[register] = bswap16(*String\Word[offset])
+  lBound = Register
+  uBound = Register + cnt - 1
+  For index = lBound To uBound
+    *HoldingRegister\Word[index] = bswap16(*String\Word[offset])
     offset + 1
   Next
-  lBound = register
-  uBound = cRegister - 1
-  For register =  lBound To uBound
-    *pRegister\Word[register] = 0
+  lBound = index
+  uBound = Count - 1
+  For index =  lBound To uBound
+    *HoldingRegister\Word[index] = 0
   Next
   FreeMemory(*String)
 EndProcedure

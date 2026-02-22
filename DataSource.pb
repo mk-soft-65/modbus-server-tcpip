@@ -138,7 +138,7 @@ Procedure thDataSource(*Data.udtDataThread)
       dblVal = -1.0
       *HoldingData\DoubleValue2 = bswap64_double(dblVal)
       ; String in Modbus Format in Register ablegen
-      bswap16_string(@*HoldingData\Text, 20, "Modbus Server TCP/IP v1.02.2")
+      bswap16_string(*HoldingData, 20, 20, "Modbus Server TCP/IP v1.02.2")
       
       UnlockMutex(Mutex)
       

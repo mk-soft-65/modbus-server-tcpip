@@ -2,7 +2,7 @@
 
 ; Comment : Modbus Server Functions 
 ; Author  : (c) Michael Kastner (mk-soft), mk-soft-65(a)t-online.de
-; Version : v1.02.2
+; Version : v1.02.3
 ; License : LGPL - GNU Lesser General Public License
 ; Create  : 13.02.2026
 ; Update  : 21.02.2026
