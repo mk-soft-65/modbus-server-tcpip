@@ -2,10 +2,10 @@
 
 ; Comment : Modbus Server Declaration  
 ; Author  : (c) Michael Kastner (mk-soft), mk-soft-65(a)t-online.de
-; Version : v1.02.1
+; Version : v1.02.2
 ; License : LGPL - GNU Lesser General Public License
 ; Create  : 13.02.2026
-; Update  : 20.02.2026
+; Update  : 21.02.2026
 
 ; ----
 

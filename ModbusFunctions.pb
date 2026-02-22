@@ -2,10 +2,10 @@
 
 ; Comment : Modbus Server Functions 
 ; Author  : (c) Michael Kastner (mk-soft), mk-soft-65(a)t-online.de
-; Version : v1.02.1
+; Version : v1.02.2
 ; License : LGPL - GNU Lesser General Public License
 ; Create  : 13.02.2026
-; Update  : 20.02.2026
+; Update  : 21.02.2026
 
 Structure ArrayOfByte
   a.a[0]
@@ -36,7 +36,7 @@ EndProcedure
 Procedure.s ModbusErrorText(ErrorCode)
   Protected text.s
   
-  text = " Error " + Str(ErrorCode)
+  text = "Error " + Str(ErrorCode)
   Select ErrorCode
     Case 1: text + " (Illegal Function)"
     Case 2: text + " (Illegal Data Address)"
@@ -58,7 +58,7 @@ EndProcedure
 Procedure ModbusError(ErrorCode, *Data.udtClientData)
   
   With *Data
-    Logging("Error Client IP " + \IP + ": FC " + Str(\Receive\Functioncode) + ModbusErrorText(ErrorCode), 1)
+    Logging("Error Client IP " + \IP + " - UnitID " + Str(\Receive\UnitID) + " - " + ModbusErrorText(ErrorCode), 1)
     \Send\TransactionID = bswap16(\Receive\TransactionID)
     \Send\ProtocolID = 0
     \Send\DataLen = bswap16(3)

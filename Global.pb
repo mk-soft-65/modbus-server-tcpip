@@ -1,6 +1,10 @@
 ﻿;-TOP
 
-; Global Functions
+; Comment : Global Functions  
+; Author  : (c) Michael Kastner (mk-soft), mk-soft-65(a)t-online.de
+; Version : v1.02.2
+; Create  : 13.02.2026
+; Update  : 21.02.2026
 
 ;- -- MacOS NapStop --
 
@@ -147,6 +151,38 @@ Procedure.q bswap64_double(value.d) ; Return a double as swap quad
     CompilerEndIf
     ProcedureReturn
   CompilerEndIf
+EndProcedure
+
+Structure ArrayOfWord
+  StructureUnion
+    Word.u[0]
+  EndStructureUnion
+EndStructure
+
+Procedure bswap16_string(*pRegister.ArrayOfWord, cRegister, String.s)
+  Protected *String.ArrayOfWord, register, offset, count, len, lBound, uBound
+  
+  *String = Ascii(String)
+  len = Len(String)
+  count = len / 2
+  If len % 2
+    count + 1
+  EndIf
+  If count > cRegister
+    count = cRegister
+  EndIf
+  lBound = 0
+  uBound = count - 1
+  For register = lBound To uBound
+    *pRegister\Word[register] = bswap16(*String\Word[offset])
+    offset + 1
+  Next
+  lBound = register
+  uBound = cRegister - 1
+  For register =  lBound To uBound
+    *pRegister\Word[register] = 0
+  Next
+  FreeMemory(*String)
 EndProcedure
 
 ; ----

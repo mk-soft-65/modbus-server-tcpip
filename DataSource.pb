@@ -17,16 +17,18 @@
 ; und diese auf die gleiche Adresse von den Modbus Registern zuweisen.
 
 Structure udtHoldingDataSource ; Values 3x40001
-  Count.w         ; Register offet 0 
-  fill.w          ; Register offet 1 
-  ShortValue1.w   ; Register offet 2 
-  ShortValue2.w   ; Register offet 3 
-  longValue1.l    ; Register offet 4 # 2 Words
-  longValue2.l    ; Register offet 6 # 2 Words
-  FloatValue1.l   ; Register offet 8 # Float as Swapped Long Data, 2 Words
-  FloatValue2.l   ; Register offet 10 
-  DoubleValue1.q  ; Register offet 12 # Double as Swapped Quad Data, 4 Words
-  DoubleValue2.q  ; Register offet 16
+  Count.w         ; Register offset 0 
+  fill.w          ; Register offset 1 
+  ShortValue1.w   ; Register offset 2 
+  ShortValue2.w   ; Register offset 3 
+  longValue1.l    ; Register offset 4 # 2 Words
+  longValue2.l    ; Register offset 6 # 2 Words
+  FloatValue1.l   ; Register offset 8 # Float as Swapped Long Data, 2 Words
+  FloatValue2.l   ; Register offset 10 
+  DoubleValue1.q  ; Register offset 12 # Double as Swapped Quad Data, 4 Words
+  DoubleValue2.q  ; Register offset 16
+  Text.u[20]      ; Register Offset 20 # String as Swapped Words, 20 Words, 40 Ascii Chars
+  fill2.w
 EndStructure
 
 Structure udtInputDataSource ; Analog Inputs 4x30001
@@ -120,6 +122,7 @@ Procedure thDataSource(*Data.udtDataThread)
       
       ; Daten in Holding Registers ablegen in High/Low Byte Notation
       LockMutex(Mutex)
+      
       *HoldingData\Count = bswap16(Count)
       *HoldingData\ShortValue1 = bswap16(1)
       *HoldingData\ShortValue2 = bswap16(Random(1000))
@@ -134,6 +137,9 @@ Procedure thDataSource(*Data.udtDataThread)
       *HoldingData\DoubleValue1 = bswap64_double(dblVal)
       dblVal = -1.0
       *HoldingData\DoubleValue2 = bswap64_double(dblVal)
+      ; String in Modbus Format in Register ablegen
+      bswap16_string(@*HoldingData\Text, 20, "Modbus Server TCP/IP v1.02.2")
+      
       UnlockMutex(Mutex)
       
       ; Kleine Pause
@@ -147,5 +153,4 @@ Procedure thDataSource(*Data.udtDataThread)
   EndWith
 EndProcedure
 
-
-  
+; ----
