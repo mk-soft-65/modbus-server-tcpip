@@ -12,12 +12,12 @@ The data is entered into the input and holding registers in Modbus format
 - 16-bit word in high/low byte notation (bswap16)
 - 32-bit long/float values in high/low word notation (bswap32). 
   * Set "Swap words in 32-bit values" in the modbus client. This is the current standard for most devices.
-- 64-bit Quat/Double values the same (bswap64)
+- 64-bit quad/double values the same (bswap64)
  
 32-bit values always require 2 registers and 64-bit values always require 4 registers.
 
 To make it easier to refer your own values to the registers, create a superimposed structure
-and assign it to the same address as the Modbus registers.
+and assign it to the same address as the modbus registers.
 
 -----------------------------------
 
