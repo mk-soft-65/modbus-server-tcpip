@@ -2,10 +2,10 @@
 
 ; Comment : Modbus Server Functions 
 ; Author  : (c) Michael Kastner (mk-soft), mk-soft-65(a)t-online.de
-; Version : v1.02.3
+; Version : v1.02.4
 ; License : LGPL - GNU Lesser General Public License
 ; Create  : 13.02.2026
-; Update  : 21.02.2026
+; Update  : 28.02.2026
 
 Structure ArrayOfByte
   a.a[0]
@@ -371,6 +371,7 @@ Procedure thModbusServer(*Data.udtServerData)
     
   With *Data
     Logging("Start Modbus Server Thread")
+    ClearMap(Client())
     ; Create Server
     If \Port = 0
       \Port = 502
@@ -504,7 +505,7 @@ Procedure thModbusServer(*Data.udtServerData)
               DeleteMapElement(Client())
             EndIf
           Next
-          Delay(10)
+          Delay(5)
           
       EndSelect
       
@@ -513,6 +514,8 @@ Procedure thModbusServer(*Data.udtServerData)
     ForEach Client()
       CloseNetworkConnection(Client()\ConnectionID)
     Next
+    ClearMap(Client())
+    
     CloseNetworkServer(\ServerID)
     
     If *Buffer
